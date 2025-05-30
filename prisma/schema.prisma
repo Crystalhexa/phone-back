@@ -17,22 +17,6 @@ model User {
   employee     Employee? @relation(fields: [employee_id], references: [employee_id])
   employee_id  Int?      @unique
   is_active    Boolean   @default(true)
-  roles        UserRole[]
-}
-
-model Role {
-  role_id Int        @id @default(autoincrement())
-  name    String     @unique
-  users   UserRole[]
-}
-
-model UserRole {
-  user     User @relation(fields: [user_id], references: [user_id])
-  user_id  Int
-  role     Role @relation(fields: [role_id], references: [role_id])
-  role_id  Int
-
-  @@id([user_id, role_id])
 }
 
 model Store {
@@ -53,7 +37,6 @@ model Branch {
   store_id  Int
   name      String
   location  String?
-  employees Employee[]
   sales_orders SalesOrder[]
 }
 
@@ -66,8 +49,6 @@ model Employee {
   hire_date   DateTime  @default(now())
   salary      Float?
   is_active   Boolean   @default(true)
-  branch_id   Int?
-  branch      Branch?   @relation(fields: [branch_id], references: [branch_id])
   user        User?
   requested_transfers StockTransferRequest[] @relation("RequestedBy")
   dispatched_deliveries Delivery[] @relation("DispatchedBy")
