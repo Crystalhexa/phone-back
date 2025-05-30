@@ -1,0 +1,267 @@
+// Prisma schema for the given SQL tables
+// Assumes use of MySQL as the provider
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  user_id      Int       @id @default(autoincrement())
+  username     String    @unique
+  password_hash String
+  employee     Employee? @relation(fields: [employee_id], references: [employee_id])
+  employee_id  Int?      @unique
+  is_active    Boolean   @default(true)
+  roles        UserRole[]
+}
+
+model Role {
+  role_id Int        @id @default(autoincrement())
+  name    String     @unique
+  users   UserRole[]
+}
+
+model UserRole {
+  user     User @relation(fields: [user_id], references: [user_id])
+  user_id  Int
+  role     Role @relation(fields: [role_id], references: [role_id])
+  role_id  Int
+
+  @@id([user_id, role_id])
+}
+
+model Store {
+  store_id   Int       @id @default(autoincrement())
+  store_type StoreType
+  branches   Branch[]
+  inventory  Inventory[]
+}
+
+enum StoreType {
+  Main
+  Branch_Store
+}
+
+model Branch {
+  branch_id Int       @id @default(autoincrement())
+  store     Store     @relation(fields: [store_id], references: [store_id])
+  store_id  Int
+  name      String
+  location  String?
+  employees Employee[]
+  sales_orders SalesOrder[]
+}
+
+model Employee {
+  employee_id Int       @id @default(autoincrement())
+  name        String
+  email       String    @unique
+  phone       String?
+  position    String?
+  hire_date   DateTime  @default(now())
+  salary      Float?
+  is_active   Boolean   @default(true)
+  branch_id   Int?
+  branch      Branch?   @relation(fields: [branch_id], references: [branch_id])
+  user        User?
+  requested_transfers StockTransferRequest[] @relation("RequestedBy")
+  dispatched_deliveries Delivery[] @relation("DispatchedBy")
+  received_deliveries   Delivery[] @relation("ReceivedBy")
+  stock_logs   StockTransferLog[]
+}
+
+model Customer {
+  customer_id Int     @id @default(autoincrement())
+  name        String
+  email       String  @unique
+  phone       String?
+  address     String?
+  sales_orders SalesOrder[]
+}
+
+model Category {
+  category_id Int        @id @default(autoincrement())
+  name        String
+  description String?
+  subcategories SubCategory[]
+  products    Product[]
+}
+
+model SubCategory {
+  subcategory_id Int      @id @default(autoincrement())
+  name           String
+  description    String?
+  category_id    Int
+  category       Category @relation(fields: [category_id], references: [category_id])
+}
+
+model Brand {
+  brand_id   Int      @id @default(autoincrement())
+  name       String
+  description String?
+  products   Product[]
+}
+
+model Product {
+  product_id Int       @id @default(autoincrement())
+  name       String
+  description String?
+  sku         String?
+  category_id Int?
+  brand_id    Int?
+  brand       Brand?    @relation(fields: [brand_id], references: [brand_id])
+  category    Category? @relation(fields: [category_id], references: [category_id])
+  images      ProductImage[]
+  inventory   Inventory[]
+  purchase_items PurchaseOrderItem[]
+  sales_items SalesOrderItem[]
+  stock_transfer_items StockTransferItem[]
+}
+
+model ProductImage {
+  image_id   Int     @id @default(autoincrement())
+  product_id Int
+  image_url  String
+  is_primary Boolean @default(false)
+  product    Product @relation(fields: [product_id], references: [product_id])
+}
+
+model Supplier {
+  supplier_id  Int     @id @default(autoincrement())
+  name         String
+  contact_name String?
+  phone        String?
+  email        String?
+  address      String?
+  purchase_orders PurchaseOrder[]
+}
+
+model PurchaseOrder {
+  po_id         Int      @id @default(autoincrement())
+  supplier_id   Int
+  purchase_date DateTime
+  purchased_by  Int?
+  supplier      Supplier @relation(fields: [supplier_id], references: [supplier_id])
+  user          User?    @relation(fields: [purchased_by], references: [user_id])
+  items         PurchaseOrderItem[]
+}
+
+model PurchaseOrderItem {
+  po_item_id      Int     @id @default(autoincrement())
+  po_id           Int
+  product_id      Int
+  quantity        Int
+  cost_price      Float
+  wholesale_price Float?
+  retail_price    Float?
+  order           PurchaseOrder @relation(fields: [po_id], references: [po_id])
+  product         Product       @relation(fields: [product_id], references: [product_id])
+}
+
+model Inventory {
+  inventory_id Int      @id @default(autoincrement())
+  product_id   Int
+  store_id     Int
+  quantity     Int
+  last_updated DateTime @default(now())
+  product      Product  @relation(fields: [product_id], references: [product_id])
+  store        Store    @relation(fields: [store_id], references: [store_id])
+}
+
+model SalesOrder {
+  order_id    Int       @id @default(autoincrement())
+  customer_id Int
+  order_date  DateTime  @default(now())
+  total_amount Float
+  status      OrderStatus @default(PENDING)
+  branch_id   Int
+  customer    Customer @relation(fields: [customer_id], references: [customer_id])
+  branch      Branch   @relation(fields: [branch_id], references: [branch_id])
+  items       SalesOrderItem[]
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model SalesOrderItem {
+  item_id   Int     @id @default(autoincrement())
+  order_id  Int
+  product_id Int
+  quantity  Int
+  price     Float
+  order     SalesOrder @relation(fields: [order_id], references: [order_id])
+  product   Product    @relation(fields: [product_id], references: [product_id])
+}
+
+model StockTransferRequest {
+  request_id     Int       @id @default(autoincrement())
+  from_branch_id Int
+  to_branch_id   Int
+  requested_by   Int
+  requested_at   DateTime  @default(now())
+  status         TransferStatus @default(PENDING)
+  from_branch    Branch    @relation("FromBranch", fields: [from_branch_id], references: [branch_id])
+  to_branch      Branch    @relation("ToBranch", fields: [to_branch_id], references: [branch_id])
+  requester      Employee  @relation("RequestedBy", fields: [requested_by], references: [employee_id])
+  items          StockTransferItem[]
+  deliveries     Delivery[]
+  logs           StockTransferLog[]
+}
+
+enum TransferStatus {
+  PENDING
+  APPROVED
+  DISPATCHED
+  RECEIVED
+  CANCELLED
+}
+
+model StockTransferItem {
+  item_id    Int     @id @default(autoincrement())
+  request_id Int
+  product_id Int
+  quantity   Int
+  request    StockTransferRequest @relation(fields: [request_id], references: [request_id])
+  product    Product              @relation(fields: [product_id], references: [product_id])
+}
+
+model Delivery {
+  delivery_id    Int     @id @default(autoincrement())
+  request_id     Int
+  dispatched_by  Int
+  delivery_method DeliveryMethod
+  dispatch_time  DateTime?
+  received_by    Int?
+  received_time  DateTime?
+  delivery_notes String?
+  request        StockTransferRequest @relation(fields: [request_id], references: [request_id])
+  dispatcher     Employee             @relation("DispatchedBy", fields: [dispatched_by], references: [employee_id])
+  receiver       Employee?            @relation("ReceivedBy", fields: [received_by], references: [employee_id])
+}
+
+enum DeliveryMethod {
+  BUS
+  SCOOTER
+  BICYCLE
+  COMPANY_PERSON
+  COURIER
+}
+
+model StockTransferLog {
+  log_id      Int     @id @default(autoincrement())
+  request_id  Int
+  action_type TransferStatus
+  employee_id Int
+  timestamp   DateTime @default(now())
+  notes       String?
+  request     StockTransferRequest @relation(fields: [request_id], references: [request_id])
+  employee    Employee            @relation(fields: [employee_id], references: [employee_id])
+}
