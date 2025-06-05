@@ -11,12 +11,22 @@ datasource db {
 }
 
 model User {
-  user_id      Int       @id @default(autoincrement())
-  username     String    @unique
+  user_id       Int             @id @default(autoincrement())
+  username      String          @unique
   password_hash String
-  employee     Employee? @relation(fields: [employee_id], references: [employee_id])
-  employee_id  Int?      @unique
-  is_active    Boolean   @default(true)
+  employee      Employee?       @relation(fields: [employee_id], references: [employee_id])
+  employee_id   Int?            @unique
+  is_active     Boolean         @default(true)
+  purchase_orders PurchaseOrder[] // 👈 Add this line
+  role         Role?   @relation(fields: [role_id], references: [role_id])
+  role_id      Int?    @unique
+}
+
+
+model Role {
+  role_id Int    @id @default(autoincrement())
+  name    String @unique
+  user    User?
 }
 
 model Store {
@@ -38,7 +48,10 @@ model Branch {
   name      String
   location  String?
   sales_orders SalesOrder[]
+  from_transfer_requests StockTransferRequest[] @relation("FromBranch") // 👈
+  to_transfer_requests   StockTransferRequest[] @relation("ToBranch")   // 👈
 }
+
 
 model Employee {
   employee_id Int       @id @default(autoincrement())
