@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -14,21 +14,32 @@ model User {
   user_id       Int             @id @default(autoincrement())
   username      String          @unique
   password_hash String
-  employee      Employee?       @relation(fields: [employee_id], references: [employee_id])
-  employee_id   Int?            @unique
+  employee      Employee?       
   is_active     Boolean         @default(true)
   purchase_orders PurchaseOrder[] // 👈 Add this line
   role         Role?   @relation(fields: [role_id], references: [role_id])
   role_id      Int?    @unique
 }
-
-
 model Role {
   role_id Int    @id @default(autoincrement())
   name    String @unique
   user    User?
 }
-
+model Employee {
+  employee_id Int       @id @default(autoincrement())
+  name        String
+  email       String    @unique
+  phone       String?
+  position    String?
+  hire_date   DateTime  @default(now())
+  is_active   Boolean   @default(true)
+  user      User?       @relation(fields: [user_id], references: [user_id])
+  user_id   Int?            @unique
+  requested_transfers StockTransferRequest[] @relation("RequestedBy")
+  dispatched_deliveries Delivery[] @relation("DispatchedBy")
+  received_deliveries   Delivery[] @relation("ReceivedBy")
+  stock_logs   StockTransferLog[]
+}
 model Store {
   store_id   Int       @id @default(autoincrement())
   store_type StoreType
@@ -53,21 +64,7 @@ model Branch {
 }
 
 
-model Employee {
-  employee_id Int       @id @default(autoincrement())
-  name        String
-  email       String    @unique
-  phone       String?
-  position    String?
-  hire_date   DateTime  @default(now())
-  salary      Float?
-  is_active   Boolean   @default(true)
-  user        User?
-  requested_transfers StockTransferRequest[] @relation("RequestedBy")
-  dispatched_deliveries Delivery[] @relation("DispatchedBy")
-  received_deliveries   Delivery[] @relation("ReceivedBy")
-  stock_logs   StockTransferLog[]
-}
+
 
 model Customer {
   customer_id Int     @id @default(autoincrement())
