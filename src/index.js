@@ -4,7 +4,7 @@ import bodyParser from 'body-parser';
 import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
-
+import userRoutes from './users/userRoutes.js';
 
 //CONFIGURATIONS
 dotenv.config();
@@ -18,7 +18,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 
-
+app.use('/api/users', userRoutes);
 
 //SERVER
 const port = process.env.PORT || 3001
