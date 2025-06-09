@@ -1,11 +1,35 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
-// Create User with Employee
+// Create User with Employee (with duplicate validation)
 export const createUser = async (req, res) => {
   try {
     const { username, password_hash, is_active, role_id, employee } = req.body;
 
+    // Check if username already exists
+    const existingUsername = await prisma.user.findUnique({
+      where: { username }
+    });
+
+    if (existingUsername) {
+      return res.status(400).json({ error: 'Username already exists' });
+    }
+
+    // Check if employee email or phone already exists
+    const existingEmployee = await prisma.employee.findFirst({
+      where: {
+        OR: [
+          { email: employee.email },
+          { phone: employee.phone }
+        ]
+      }
+    });
+
+    if (existingEmployee) {
+      return res.status(400).json({ error: 'Employee with this email or phone already exists' });
+    }
+
+    // Create the user and employee
     const newUser = await prisma.user.create({
       data: {
         username,
@@ -33,6 +57,7 @@ export const createUser = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
 
 // Get All Users
 export const getAllUsers = async (req, res) => {
