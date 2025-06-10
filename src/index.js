@@ -5,6 +5,9 @@ import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
 import userRoutes from './users/userRoutes.js';
+import supplierRoutes from './supliers/supliersRoute.js';
+import userRolesRoutes from './users/UserRolesRoutes.js';
+
 
 //CONFIGURATIONS
 dotenv.config();
@@ -19,7 +22,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 
 app.use('/api/users', userRoutes);
-
+app.use('/api/suppliers', supplierRoutes);
+app.use('/api/userRoles', userRolesRoutes);
 //SERVER
 const port = process.env.PORT || 3001
 app.listen(port,()=>{
