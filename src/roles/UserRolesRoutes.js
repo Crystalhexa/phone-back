@@ -6,7 +6,7 @@ import {
   getRoleById,
   updateRole,
   deleteRole
-} from '../users/UserRolesController.js';
+} from './UserRolesController.js';
 
 const router = express.Router();
 

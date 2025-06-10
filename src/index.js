@@ -6,7 +6,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import userRoutes from './users/userRoutes.js';
 import supplierRoutes from './supliers/supliersRoute.js';
-import userRolesRoutes from './users/UserRolesRoutes.js';
+import userRolesRoutes from './roles/UserRolesRoutes.js';
 
 
 //CONFIGURATIONS
