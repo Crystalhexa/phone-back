@@ -70,11 +70,11 @@ model Product {
   name         String
   description  String?
   sku          String?
-  category_id  Int?
+  subcategory_id  Int?
   brand_id     Int?
   isActive     Boolean   @default(true)
   brand        Brand?    @relation(fields: [brand_id], references: [brand_id])
-  category     Category? @relation(fields: [category_id], references: [category_id])
+  sub_category     SubCategory? @relation(fields: [subcategory_id], references: [subcategory_id])
   variants     ProductVariant[]
   images       ProductImage[]
   inventory    Inventory[]
@@ -149,7 +149,6 @@ model Category {
   name          String
   description   String?
   subcategories SubCategory[]
-  products      Product[]
 }
 
 model SubCategory {
@@ -157,6 +156,7 @@ model SubCategory {
   name           String
   description    String?
   category_id    Int
+  products      Product[]
   category       Category  @relation(fields: [category_id], references: [category_id])
 }
 
