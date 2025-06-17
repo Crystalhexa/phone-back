@@ -31,7 +31,7 @@ model Employee {
   phone                 String?
   nic                   String?              @unique // Added NIC field
   gender                String?              // Added Gender field
-  dob                   DateTime?            // Added Date of Birth field
+  dob                   DateTime            // Added Date of Birth field
   position              String?
   hire_date             DateTime             @default(now())
   is_active             Boolean              @default(true)
