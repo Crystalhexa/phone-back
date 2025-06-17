@@ -1,12 +1,9 @@
-// Prisma schema for the given SQL tables
-// Assumes use of MySQL as the provider
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgres"
   url      = env("DATABASE_URL")
 }
 
@@ -28,20 +25,24 @@ model Role {
 }
 
 model Employee {
-  employee_id         Int       @id @default(autoincrement())
-  name                String
-  email               String    @unique
-  phone               String?
-  position            String?
-  hire_date           DateTime  @default(now())
-  is_active           Boolean   @default(true)
-  user_id             Int?      @unique
-  user                User?     @relation(fields: [user_id], references: [user_id])
-  requested_transfers StockTransferRequest[] @relation("RequestedBy")
-  dispatched_deliveries Delivery[]          @relation("DispatchedBy")
-  received_deliveries   Delivery[]          @relation("ReceivedBy")
-  stock_logs           StockTransferLog[]
+  employee_id           Int                  @id @default(autoincrement())
+  name                  String
+  email                 String               @unique
+  phone                 String?
+  nic                   String?              @unique // Added NIC field
+  gender                String?              // Added Gender field
+  dob                   DateTime?            // Added Date of Birth field
+  position              String?
+  hire_date             DateTime             @default(now())
+  is_active             Boolean              @default(true)
+  user_id               Int?                 @unique
+  user                  User?                @relation(fields: [user_id], references: [user_id])
+  requested_transfers   StockTransferRequest[] @relation("RequestedBy")
+  dispatched_deliveries Delivery[]           @relation("DispatchedBy")
+  received_deliveries   Delivery[]           @relation("ReceivedBy")
+  stock_logs            StockTransferLog[]
 }
+
 model Store {
   store_id   Int       @id @default(autoincrement())
   store_type StoreType
@@ -69,11 +70,11 @@ model Product {
   name         String
   description  String?
   sku          String?
-  category_id  Int?
+  subcategory_id  Int?
   brand_id     Int?
   isActive     Boolean   @default(true)
   brand        Brand?    @relation(fields: [brand_id], references: [brand_id])
-  category     Category? @relation(fields: [category_id], references: [category_id])
+  sub_category     SubCategory? @relation(fields: [subcategory_id], references: [subcategory_id])
   variants     ProductVariant[]
   images       ProductImage[]
   inventory    Inventory[]
@@ -148,7 +149,6 @@ model Category {
   name          String
   description   String?
   subcategories SubCategory[]
-  products      Product[]
 }
 
 model SubCategory {
@@ -156,6 +156,7 @@ model SubCategory {
   name           String
   description    String?
   category_id    Int
+  products      Product[]
   category       Category  @relation(fields: [category_id], references: [category_id])
 }
 

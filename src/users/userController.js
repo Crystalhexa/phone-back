@@ -1,10 +1,15 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
+import bcrypt from 'bcryptjs';
 
-// Create User with Employee (with duplicate validation)
 export const createUser = async (req, res) => {
   try {
-    const { username, password_hash, is_active, role_id, employee } = req.body;
+    const { username, password_hash, is_active = true, role_id, employee } = req.body;
+
+    // Validation: Required fields
+    if (!username || !password_hash || !employee?.name || !employee?.email || !role_id) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
 
     // Check if username already exists
     const existingUsername = await prisma.user.findUnique({
@@ -15,34 +20,51 @@ export const createUser = async (req, res) => {
       return res.status(400).json({ error: 'Username already exists' });
     }
 
-    // Check if employee email or phone already exists
+    // Check if role exists
+    const existingRole = await prisma.role.findUnique({
+      where: { role_id }
+    });
+
+    if (!existingRole) {
+      return res.status(400).json({ error: 'Invalid role_id' });
+    }
+
+    // Check if employee email, phone or NIC already exists
     const existingEmployee = await prisma.employee.findFirst({
       where: {
         OR: [
           { email: employee.email },
-          { phone: employee.phone }
-        ]
+          employee.phone ? { phone: employee.phone } : undefined,
+          employee.nic ? { nic: employee.nic } : undefined
+        ].filter(Boolean)
       }
     });
 
     if (existingEmployee) {
-      return res.status(400).json({ error: 'Employee with this email or phone already exists' });
+      return res.status(400).json({ error: 'Employee with this email, phone, or NIC already exists' });
     }
 
-    // Create the user and employee
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password_hash, 10); // 10 is the salt rounds
+
+    // Create the user and the associated employee
     const newUser = await prisma.user.create({
       data: {
         username,
-        password_hash,
+        password_hash: hashedPassword,
         is_active,
         role: { connect: { role_id } },
         employee: {
           create: {
             name: employee.name,
             email: employee.email,
-            phone: employee.phone,
-            hire_date: new Date(employee.hire_date),
-            is_active: employee.is_active
+            phone: employee.phone || null,
+            nic: employee.nic || null,
+            gender: employee.gender || null,
+            dob: employee.dob ? new Date(employee.dob) : null,
+            position: employee.position || null,
+            hire_date: employee.hire_date ? new Date(employee.hire_date) : undefined,
+            is_active: employee.is_active !== undefined ? employee.is_active : true
           }
         }
       },
@@ -54,9 +76,11 @@ export const createUser = async (req, res) => {
 
     res.status(201).json(newUser);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Error creating user:', error);
+    res.status(400).json({ error: error.message || 'Failed to create user' });
   }
 };
+
 
 
 // Get All Users
