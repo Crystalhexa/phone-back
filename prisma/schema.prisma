@@ -1,22 +1,19 @@
-// Prisma schema for the given SQL tables
-// Assumes use of MySQL as the provider
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgres"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  user_id         Int             @id @default(autoincrement())
-  username        String          @unique
+  user_id         Int       @id @default(autoincrement())
+  username        String    @unique
   password_hash   String
-  is_active       Boolean         @default(true)
-  role_id         Int?            @unique
-  role            Role?           @relation(fields: [role_id], references: [role_id])
+  is_active       Boolean   @default(true)
+  role_id         Int?      @unique
+  role            Role?     @relation(fields: [role_id], references: [role_id])
   employee        Employee?
   purchase_orders PurchaseOrder[]
 }
@@ -28,38 +25,38 @@ model Role {
 }
 
 model Employee {
-  employee_id           Int                    @id @default(autoincrement())
+  employee_id           Int                  @id @default(autoincrement())
   name                  String
-  email                 String                 @unique
+  email                 String               @unique
   phone                 String?
-  nic                   String?                @unique // Added NIC field
-  gender                String? // Added Gender field
-  dob                   DateTime? // Added Date of Birth field
+  nic                   String?              @unique // Added NIC field
+  gender                String?              // Added Gender field
+  dob                   DateTime            // Added Date of Birth field
   position              String?
-  hire_date             DateTime               @default(now())
-  is_active             Boolean                @default(true)
-  user_id               Int?                   @unique
-  user                  User?                  @relation(fields: [user_id], references: [user_id])
+  hire_date             DateTime             @default(now())
+  is_active             Boolean              @default(true)
+  user_id               Int?                 @unique
+  user                  User?                @relation(fields: [user_id], references: [user_id])
   requested_transfers   StockTransferRequest[] @relation("RequestedBy")
-  dispatched_deliveries Delivery[]             @relation("DispatchedBy")
-  received_deliveries   Delivery[]             @relation("ReceivedBy")
+  dispatched_deliveries Delivery[]           @relation("DispatchedBy")
+  received_deliveries   Delivery[]           @relation("ReceivedBy")
   stock_logs            StockTransferLog[]
 }
 
 model Store {
-  store_id   Int         @id @default(autoincrement())
+  store_id   Int       @id @default(autoincrement())
   store_type StoreType
   branches   Branch[]
   inventory  Inventory[]
 }
 
 model Branch {
-  branch_id              Int                    @id @default(autoincrement())
-  store_id               Int
-  name                   String
-  location               String?
-  store                  Store                  @relation(fields: [store_id], references: [store_id])
-  sales_orders           SalesOrder[]
+  branch_id           Int                   @id @default(autoincrement())
+  store_id            Int
+  name                String
+  location            String?
+  store               Store                 @relation(fields: [store_id], references: [store_id])
+  sales_orders        SalesOrder[]
   from_transfer_requests StockTransferRequest[] @relation("FromBranch")
   to_transfer_requests   StockTransferRequest[] @relation("ToBranch")
 }
@@ -68,45 +65,40 @@ enum StoreType {
   Main
   Branch_Store
 }
-
 model Product {
-  product_id  Int     @id @default(autoincrement())
-  name        String
-  description String?
-  sku         String?
-  category_id Int?
-  brand_id    Int?
-  isActive    Boolean @default(true)
-
-  brand    Brand?    @relation(fields: [brand_id], references: [brand_id])
-  category Category? @relation(fields: [category_id], references: [category_id])
-
-  variants                  ProductVariant[]
-  images                    ProductImage[]
-  inventory                 Inventory[]
-  purchase_items            PurchaseOrderItem[]
-  sales_items               SalesOrderItem[]
-  stock_transfer_items      StockTransferItem[]
-  SubCategory               SubCategory?        @relation(fields: [subCategorySubcategory_id], references: [subcategory_id])
-  subCategorySubcategory_id Int?
+  product_id   Int       @id @default(autoincrement())
+  name         String
+  description  String?
+  sku          String?
+  subcategory_id  Int?
+  brand_id     Int?
+  isActive     Boolean   @default(true)
+  brand        Brand?    @relation(fields: [brand_id], references: [brand_id])
+  sub_category     SubCategory? @relation(fields: [subcategory_id], references: [subcategory_id])
+  variants     ProductVariant[]
+  images       ProductImage[]
+  inventory    Inventory[]
+  purchase_items PurchaseOrderItem[]
+  sales_items  SalesOrderItem[]
+  stock_transfer_items StockTransferItem[]
 }
 
 model ProductVariant {
-  id            String                  @id @default(uuid())
-  productId     Int
-  product       Product                 @relation(fields: [productId], references: [product_id])
-  sku           String                  @unique
-  price         Decimal
-  stockQuantity Int
-  isActive      Boolean                 @default(true)
-  createdAt     DateTime                @default(now())
-  attributes    VariantAttributeValue[]
+  id              String                @id @default(uuid())
+  productId       Int
+  product         Product               @relation(fields: [productId], references: [product_id])
+  sku             String               @unique
+  price           Decimal
+  stockQuantity   Int
+  isActive        Boolean              @default(true)
+  createdAt       DateTime             @default(now())
+  attributes      VariantAttributeValue[]
 
   @@map("product_variants")
 }
 
 model Attribute {
-  id     String           @id @default(uuid())
+  id     String             @id @default(uuid())
   name   String
   values AttributeValue[]
 
@@ -114,21 +106,21 @@ model Attribute {
 }
 
 model AttributeValue {
-  id          String                  @id @default(uuid())
-  value       String
-  attributeId String
-  attribute   Attribute               @relation(fields: [attributeId], references: [id])
-  variants    VariantAttributeValue[]
+  id           String              @id @default(uuid())
+  value        String
+  attributeId  String
+  attribute    Attribute           @relation(fields: [attributeId], references: [id])
+  variants     VariantAttributeValue[]
 
   @@map("attribute_values")
 }
 
 model VariantAttributeValue {
-  id               String         @id @default(uuid())
-  variantId        String
-  attributeValueId String
-  variant          ProductVariant @relation(fields: [variantId], references: [id])
-  attributeValue   AttributeValue @relation(fields: [attributeValueId], references: [id])
+  id                String           @id @default(uuid())
+  variantId         String
+  attributeValueId  String
+  variant           ProductVariant   @relation(fields: [variantId], references: [id])
+  attributeValue    AttributeValue  @relation(fields: [attributeValueId], references: [id])
 
   @@unique([variantId, attributeValueId])
   @@map("variant_attribute_values")
@@ -143,7 +135,7 @@ model ProductImage {
 }
 
 model Inventory {
-  inventory_id Int      @id @default(autoincrement())
+  inventory_id Int     @id @default(autoincrement())
   product_id   Int
   store_id     Int
   quantity     Int
@@ -157,7 +149,6 @@ model Category {
   name          String
   description   String?
   subcategories SubCategory[]
-  Product       Product[]
 }
 
 model SubCategory {
@@ -165,35 +156,34 @@ model SubCategory {
   name           String
   description    String?
   category_id    Int
-  products       Product[]
+  products      Product[]
   category       Category  @relation(fields: [category_id], references: [category_id])
 }
 
 model Brand {
-  brand_id    Int       @id @default(autoincrement())
-  name        String
+  brand_id   Int      @id @default(autoincrement())
+  name       String
   description String?
-  products    Product[]
+  products   Product[]
 }
-
 model Customer {
-  customer_id  Int          @id @default(autoincrement())
+  customer_id  Int     @id @default(autoincrement())
   name         String
-  email        String       @unique
+  email        String  @unique
   phone        String?
   address      String?
   sales_orders SalesOrder[]
 }
 
 model SalesOrder {
-  order_id     Int              @id @default(autoincrement())
+  order_id     Int          @id @default(autoincrement())
   customer_id  Int
   branch_id    Int
-  order_date   DateTime         @default(now())
+  order_date   DateTime     @default(now())
   total_amount Float
-  status       OrderStatus      @default(PENDING)
-  customer     Customer         @relation(fields: [customer_id], references: [customer_id])
-  branch       Branch           @relation(fields: [branch_id], references: [branch_id])
+  status       OrderStatus  @default(PENDING)
+  customer     Customer     @relation(fields: [customer_id], references: [customer_id])
+  branch       Branch       @relation(fields: [branch_id], references: [branch_id])
   items        SalesOrderItem[]
 }
 
@@ -212,29 +202,28 @@ enum OrderStatus {
   COMPLETED
   CANCELLED
 }
-
 model Supplier {
-  supplier_id     Int             @id @default(autoincrement())
-  name            String
-  contact_name    String?
-  phone           String?
-  email           String?
-  address         String?
+  supplier_id    Int      @id @default(autoincrement())
+  name           String
+  contact_name   String?
+  phone          String?
+  email          String?
+  address        String?
   purchase_orders PurchaseOrder[]
 }
 
 model PurchaseOrder {
-  po_id         Int                 @id @default(autoincrement())
-  supplier_id   Int
-  purchased_by  Int?
-  purchase_date DateTime
-  supplier      Supplier            @relation(fields: [supplier_id], references: [supplier_id])
-  user          User?               @relation(fields: [purchased_by], references: [user_id])
-  items         PurchaseOrderItem[]
+  po_id          Int      @id @default(autoincrement())
+  supplier_id    Int
+  purchased_by   Int?
+  purchase_date  DateTime
+  supplier       Supplier @relation(fields: [supplier_id], references: [supplier_id])
+  user           User?    @relation(fields: [purchased_by], references: [user_id])
+  items          PurchaseOrderItem[]
 }
 
 model PurchaseOrderItem {
-  po_item_id      Int           @id @default(autoincrement())
+  po_item_id      Int     @id @default(autoincrement())
   po_id           Int
   product_id      Int
   quantity        Int
@@ -244,24 +233,23 @@ model PurchaseOrderItem {
   order           PurchaseOrder @relation(fields: [po_id], references: [po_id])
   product         Product       @relation(fields: [product_id], references: [product_id])
 }
-
 model StockTransferRequest {
-  request_id     Int                 @id @default(autoincrement())
-  from_branch_id Int
-  to_branch_id   Int
-  requested_by   Int
-  requested_at   DateTime            @default(now())
-  status         TransferStatus      @default(PENDING)
-  from_branch    Branch              @relation("FromBranch", fields: [from_branch_id], references: [branch_id])
-  to_branch      Branch              @relation("ToBranch", fields: [to_branch_id], references: [branch_id])
-  requester      Employee            @relation("RequestedBy", fields: [requested_by], references: [employee_id])
-  items          StockTransferItem[]
-  deliveries     Delivery[]
-  logs           StockTransferLog[]
+  request_id      Int      @id @default(autoincrement())
+  from_branch_id  Int
+  to_branch_id    Int
+  requested_by    Int
+  requested_at    DateTime @default(now())
+  status          TransferStatus @default(PENDING)
+  from_branch     Branch    @relation("FromBranch", fields: [from_branch_id], references: [branch_id])
+  to_branch       Branch    @relation("ToBranch", fields: [to_branch_id], references: [branch_id])
+  requester       Employee  @relation("RequestedBy", fields: [requested_by], references: [employee_id])
+  items           StockTransferItem[]
+  deliveries      Delivery[]
+  logs            StockTransferLog[]
 }
 
 model StockTransferItem {
-  item_id    Int                  @id @default(autoincrement())
+  item_id    Int     @id @default(autoincrement())
   request_id Int
   product_id Int
   quantity   Int
@@ -270,7 +258,7 @@ model StockTransferItem {
 }
 
 model Delivery {
-  delivery_id     Int                  @id @default(autoincrement())
+  delivery_id     Int           @id @default(autoincrement())
   request_id      Int
   dispatched_by   Int
   delivery_method DeliveryMethod
@@ -284,11 +272,11 @@ model Delivery {
 }
 
 model StockTransferLog {
-  log_id      Int                  @id @default(autoincrement())
+  log_id      Int     @id @default(autoincrement())
   request_id  Int
   employee_id Int
   action_type TransferStatus
-  timestamp   DateTime             @default(now())
+  timestamp   DateTime @default(now())
   notes       String?
   request     StockTransferRequest @relation(fields: [request_id], references: [request_id])
   employee    Employee             @relation(fields: [employee_id], references: [employee_id])

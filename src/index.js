@@ -11,6 +11,7 @@ import customerRoutes from './customers/customerRouter.js';
 import productRoutes from './product/productRoute.js';
 import categoryRoutes from './categories/categoriesRoutes.js';
 import subcategoryRoutes from './categories/subCategoriesRoutes.js';
+
 //CONFIGURATIONS
 dotenv.config();
 const app = express();
