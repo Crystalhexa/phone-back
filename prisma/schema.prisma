@@ -28,10 +28,10 @@ model Employee {
   employee_id           Int                  @id @default(autoincrement())
   name                  String
   email                 String               @unique
-  phone                 String?
-  nic                   String?              @unique // Added NIC field
-  gender                String?              // Added Gender field
-  dob                   DateTime            // Added Date of Birth field
+  phone                 String?              @unique
+  nic                   String?              @unique 
+  gender                String?               
+  dob                   DateTime?            
   position              String?
   hire_date             DateTime             @default(now())
   is_active             Boolean              @default(true)
